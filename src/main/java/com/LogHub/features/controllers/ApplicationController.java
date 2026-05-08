@@ -29,12 +29,12 @@ public class ApplicationController {
     private final IApplicationService applicationService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) //chequear que salga 201
+    @ResponseStatus(HttpStatus.CREATED) 
     @Operation(
             summary = "Registrar una nueva aplicación",
             description = "Registra una aplicación cliente y genera automáticamente su API Key"
     )
-    @ApiResponse(responseCode = "200", description = "Aplicación registrada correctamente")
+    @ApiResponse(responseCode = "201", description = "Aplicación registrada correctamente")
     @ApiResponse(responseCode = "400", description = "Error de validación o email duplicado")
     public ApplicationResponseDTO registerApplication(
             @Valid @RequestBody ApplicationRequestDTO requestDTO) {
