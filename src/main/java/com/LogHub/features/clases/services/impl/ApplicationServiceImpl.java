@@ -25,7 +25,7 @@ public class ApplicationServiceImpl implements IApplicationService {
         if (applicationRepository.existsByEmail(dto.getEmail())) {
             throw new EmailAlreadyRegisteredException("El email ya está registrado"); 
         }
-        //EmailAlreadyExistsException
+        
 
         var application = ApplicationMapper.toEntity(dto);
         var savedApp = applicationRepository.save(application);
