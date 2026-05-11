@@ -47,7 +47,7 @@ public class ApplicationController {
             summary = "Listar aplicaciones registradas",
             description = "Devuelve todas las aplicaciones que pueden enviar logs al sistema"
     )
-    @ApiResponse(responseCode = "201", description = "Listado obtenido correctamente")
+    @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
     public List<ApplicationResponseDTO> getAllApplications() {
         return applicationService.getAllApplications();
     }
