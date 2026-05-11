@@ -2,8 +2,6 @@ package com.LogHub.features.clases.entity;
 
 import java.time.LocalDateTime;
 
-import org.springframework.boot.logging.LogLevel;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -36,7 +34,7 @@ public class Log {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    private LogLevel logLevel;
+    private LogLevel logLevel; //enum
 
     private LocalDateTime timestamp;
 
@@ -44,7 +42,7 @@ public class Log {
     @JoinColumn(name = "application_id", nullable = false)
     private Application application;
 
-    /*Registrar momento en el que se inicia el log */
+    /*Registrar momento en el que se inicia el Log */
     @PrePersist
     public void prePersist() {
         this.timestamp = LocalDateTime.now();
