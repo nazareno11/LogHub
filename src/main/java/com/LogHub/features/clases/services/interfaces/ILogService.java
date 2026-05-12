@@ -1,0 +1,23 @@
+package com.LogHub.features.clases.services.interfaces;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import com.LogHub.features.clases.dtos.request.LogRequestDTO;
+import com.LogHub.features.clases.dtos.response.LogResponseDTO;
+
+public interface ILogService {
+
+
+    List<LogResponseDTO> getLogsByApplication(Long appId);
+
+    List<LogResponseDTO> getLogsByApplicationAndDates(
+            Long appId,
+            LocalDateTime from,
+            LocalDateTime to
+    );
+    /*validar la apikey */
+    LogResponseDTO createLog(UUID apiKey, LogRequestDTO dto);
+
+}

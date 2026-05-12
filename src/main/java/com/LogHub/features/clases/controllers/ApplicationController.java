@@ -28,6 +28,7 @@ public class ApplicationController {
 
     private final IApplicationService applicationService;
 
+    /*POST */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) 
     @Operation(
@@ -41,7 +42,8 @@ public class ApplicationController {
 
         return applicationService.registerApplication(requestDTO);
     }
-
+    
+    /*GET */
     @GetMapping
     @Operation(
             summary = "Listar aplicaciones registradas",
