@@ -2,10 +2,11 @@ package com.LogHub.features.clases.services.interfaces;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 import com.LogHub.features.clases.dtos.request.LogRequestDTO;
 import com.LogHub.features.clases.dtos.response.LogResponseDTO;
+import com.LogHub.features.clases.entity.Application;
 
 public interface ILogService {
 
@@ -18,6 +19,6 @@ public interface ILogService {
             LocalDateTime to
     );
     /*validar la apikey */
-    LogResponseDTO createLog(UUID apiKey, LogRequestDTO dto);
+    LogResponseDTO createLog(LogRequestDTO dto, Application application);
 
 }
