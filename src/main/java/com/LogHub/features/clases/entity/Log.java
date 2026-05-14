@@ -42,6 +42,12 @@ public class Log {
     @JoinColumn(name = "application_id", nullable = false)
     private Application application;
 
+    /*ext*/
+    private String level;       
+    private String clienteIp;
+    private String httpMetod;
+    private String endpoint;
+
     /*Registrar momento en el que se inicia el Log */
     @PrePersist
     public void prePersist() {

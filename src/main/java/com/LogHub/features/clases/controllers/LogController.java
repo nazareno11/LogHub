@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/logs")
 @RequiredArgsConstructor
@@ -30,11 +29,10 @@ public class LogController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Registrar un nuevo log de evento", description = "Recibe un evento de una app externa. Requiere validación estricta de API Key en la cabecera.")
     @ApiResponse(responseCode = "201", description = "Log guardado correctamente")
-    @ApiResponse(responseCode = "401", description = "API Key inválida o no pertenece a la aplicación")
+    @ApiResponse(responseCode = "401", description = "API Key inválida")
     @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos")
-    public LogResponseDTO createLog(@RequestBody @Valid LogRequestDTO dto, HttpServletRequest request) {
-        Application app = (Application) request.getAttribute("application");
-        return logService.createLog(dto, app);
+    public LogResponseDTO createLog(@Valid @RequestBody LogRequestDTO dto) {
+        return logService.createLog(dto);
     }
 
     @GetMapping("/application/{appId}")

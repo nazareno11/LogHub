@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.LogHub.features.clases.dtos.request.LogRequestDTO;
 import com.LogHub.features.clases.dtos.response.LogResponseDTO;
-import com.LogHub.features.clases.entity.Application;
+
 
 public interface ILogService {
 
@@ -19,6 +19,7 @@ public interface ILogService {
             LocalDateTime to
     );
     /*validar la apikey */
-    LogResponseDTO createLog(LogRequestDTO dto, Application application);
+    LogResponseDTO createLog(LogRequestDTO dto);
+
 
 }
