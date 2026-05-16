@@ -2,12 +2,12 @@ package com.LogHub.features.clases.controllers;
 
 import com.LogHub.features.clases.dtos.request.LogRequestDTO;
 import com.LogHub.features.clases.dtos.response.LogResponseDTO;
-import com.LogHub.features.clases.entity.Application;
 import com.LogHub.features.clases.services.interfaces.ILogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -47,8 +47,9 @@ public class LogController {
     @ApiResponse(responseCode = "200", description = "Filtro aplicado con éxito")
     public List<LogResponseDTO> getLogsByApplicationAndDates(
             @PathVariable Long appId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @Parameter(description = "Fecha desde (ej: 2026-05-16T00:00:00)", schema = @Schema(type = "string")) LocalDateTime from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @Parameter(description = "Fecha hasta (ej: 2026-05-16T23:59:59)", schema = @Schema(type = "string")) LocalDateTime to) {
         return logService.getLogsByApplicationAndDates(appId, from, to);
+
     }
 }

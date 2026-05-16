@@ -2,9 +2,13 @@ package com.LogHub.features.clases.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,6 +29,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Table(name = "logs")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Log {
 
     @Id
@@ -38,8 +43,9 @@ public class Log {
 
     private LocalDateTime timestamp;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id", nullable = false)
+    @JsonIgnore
     private Application application;
 
     /*ext*/

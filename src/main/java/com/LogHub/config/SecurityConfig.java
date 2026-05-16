@@ -8,6 +8,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.LogHub.config.security.ApiKeyFilter;
 import com.LogHub.config.web.RequestLoggingFilter;
+import com.LogHub.features.clases.repository.IApplicationRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,8 +16,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ApiKeyFilter apiKeyFilter;
     private final RequestLoggingFilter requestLoggingFilter;
+    private final IApplicationRepository applicationRepository;
+
+    @Bean
+    public ApiKeyFilter apiKeyFilter() {
+        return new ApiKeyFilter(applicationRepository);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -24,16 +30,13 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
+            
             .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(apiKeyFilter, RequestLoggingFilter.class)
+            .addFilterAfter(apiKeyFilter(), RequestLoggingFilter.class)
 
+           
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/applications/**"
-                ).permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()   
             );
 
         return http.build();

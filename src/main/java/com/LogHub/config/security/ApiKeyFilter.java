@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-@Component
+
 @RequiredArgsConstructor
 public class ApiKeyFilter extends OncePerRequestFilter {
 
