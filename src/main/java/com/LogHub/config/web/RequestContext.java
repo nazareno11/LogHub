@@ -20,15 +20,29 @@ public class RequestContext {
         return applicationHolder.get();
     }
 
-    public static void setRequestData(String ip, String method, String endpoint) {
+    public static void setIp(String ip) {
         ipHolder.set(ip);
+    }
+
+    public static String getIp() {
+        return ipHolder.get();
+    }
+
+    public static void setMethod(String method) {
         methodHolder.set(method);
+    }
+
+    public static String getMethod() {
+        return methodHolder.get();
+    }
+
+    public static void setEndpoint(String endpoint) {
         endpointHolder.set(endpoint);
     }
 
-    public static String getIp() { return ipHolder.get(); }
-    public static String getMethod() { return methodHolder.get(); }
-    public static String getEndpoint() { return endpointHolder.get(); }
+    public static String getEndpoint() {
+        return endpointHolder.get();
+    }
 
     public static void clear() {
         applicationHolder.remove();

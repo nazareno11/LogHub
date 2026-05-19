@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.LogHub.config.web.RequestContext;
 import com.LogHub.features.clases.entity.Application;
 import com.LogHub.features.clases.repository.IApplicationRepository;
 
@@ -46,7 +47,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 return;
             }
 
-            request.setAttribute("application", app);
+            RequestContext.setApplication(app);
+            RequestContext.setIp(request.getRemoteAddr());
+            RequestContext.setMethod(request.getMethod());
+            RequestContext.setEndpoint(request.getRequestURI());
+
+            request.setAttribute("application", app);       
 
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -54,7 +60,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            RequestContext.clear();
+        }
     }
 
     @Override

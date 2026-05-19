@@ -20,15 +20,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-            String ip = request.getRemoteAddr();
-            String method = request.getMethod();
-            String uri = request.getRequestURI();
-
-            RequestContext.setRequestData(ip, method, uri);
-
             filterChain.doFilter(request, response);
-
         } finally {
+            
             RequestContext.clear();
         }
     }
