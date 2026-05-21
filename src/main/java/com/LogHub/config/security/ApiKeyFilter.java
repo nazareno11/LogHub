@@ -3,7 +3,6 @@ package com.LogHub.config.security;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.LogHub.config.web.RequestContext;
