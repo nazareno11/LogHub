@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Applications", description = "Gestión de aplicaciones cliente que envían logs")
 public class ApplicationController {
+    //swagger http://localhost:8080/swagger-ui/index.html
 
     private final IApplicationService applicationService;
 
