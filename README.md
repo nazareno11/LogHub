@@ -127,7 +127,7 @@ GET /logs/application/{appId}/dates
 # Integración de ejemplo con TaskAPI
 
 Este proyecto fue probado utilizando una aplicación externa llamada **TaskAPI**.
-https://github.com/nazareno11/TaskApi.git
+[TaskAPI](https://github.com/nazareno11/TaskApi.git)
 
 TaskAPI intercepta todas las requests HTTP mediante un filtro (`OncePerRequestFilter`) y envía automáticamente logs hacia LogHub usando `RestTemplate`.
 
@@ -158,3 +158,6 @@ TaskAPI → LogHub → PostgreSQL
 
 ---
 
+## Autor
+
+Nazareno Luna
