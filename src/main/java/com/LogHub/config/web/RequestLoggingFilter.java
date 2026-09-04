@@ -14,16 +14,22 @@ import jakarta.servlet.http.HttpServletResponse;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
+
+        long startTime = System.currentTimeMillis();
 
         try {
             filterChain.doFilter(request, response);
+
         } finally {
-            
-            RequestContext.clear();
+
+            long durationMs = System.currentTimeMillis() - startTime;
+
+            RequestContext.setStatusCode(response.getStatus());
+            RequestContext.setDurationMs(durationMs);
         }
     }
 }

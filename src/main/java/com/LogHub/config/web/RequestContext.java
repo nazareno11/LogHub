@@ -1,53 +1,73 @@
 package com.LogHub.config.web;
 
-
-
 import com.LogHub.features.clases.entity.Application;
 
-/*guarda datos del request actual para que luego el ExceptionHandler los use*/
-public class RequestContext {
+public final class RequestContext {
 
-    private static final ThreadLocal<Application> applicationHolder = new ThreadLocal<>();
-    private static final ThreadLocal<String> ipHolder = new ThreadLocal<>();
-    private static final ThreadLocal<String> methodHolder = new ThreadLocal<>();
-    private static final ThreadLocal<String> endpointHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Application> APPLICATION = new ThreadLocal<>();
+    private static final ThreadLocal<String> CLIENT_IP = new ThreadLocal<>();
+    private static final ThreadLocal<String> HTTP_METHOD = new ThreadLocal<>();
+    private static final ThreadLocal<String> ENDPOINT = new ThreadLocal<>();
+    private static final ThreadLocal<Integer> STATUS_CODE = new ThreadLocal<>();
+    private static final ThreadLocal<Long> DURATION_MS = new ThreadLocal<>();
 
-    public static void setApplication(Application app) {
-        applicationHolder.set(app);
+    private RequestContext() {
+    }
+
+    public static void setApplication(Application application) {
+        APPLICATION.set(application);
     }
 
     public static Application getApplication() {
-        return applicationHolder.get();
+        return APPLICATION.get();
     }
 
-    public static void setIp(String ip) {
-        ipHolder.set(ip);
+    public static void setClientIp(String clientIp) {
+        CLIENT_IP.set(clientIp);
     }
 
-    public static String getIp() {
-        return ipHolder.get();
+    public static String getClientIp() {
+        return CLIENT_IP.get();
     }
 
-    public static void setMethod(String method) {
-        methodHolder.set(method);
+    public static void setHttpMethod(String httpMethod) {
+        HTTP_METHOD.set(httpMethod);
     }
 
-    public static String getMethod() {
-        return methodHolder.get();
+    public static String getHttpMethod() {
+        return HTTP_METHOD.get();
     }
 
     public static void setEndpoint(String endpoint) {
-        endpointHolder.set(endpoint);
+        ENDPOINT.set(endpoint);
     }
 
     public static String getEndpoint() {
-        return endpointHolder.get();
+        return ENDPOINT.get();
+    }
+
+    public static void setStatusCode(Integer statusCode) {
+        STATUS_CODE.set(statusCode);
+    }
+
+    public static Integer getStatusCode() {
+        return STATUS_CODE.get();
+    }
+
+    public static void setDurationMs(Long durationMs) {
+        DURATION_MS.set(durationMs);
+    }
+
+    public static Long getDurationMs() {
+        return DURATION_MS.get();
     }
 
     public static void clear() {
-        applicationHolder.remove();
-        ipHolder.remove();
-        methodHolder.remove();
-        endpointHolder.remove();
+        APPLICATION.remove();
+        CLIENT_IP.remove();
+        HTTP_METHOD.remove();
+        ENDPOINT.remove();
+        STATUS_CODE.remove();
+        DURATION_MS.remove();
     }
 }
