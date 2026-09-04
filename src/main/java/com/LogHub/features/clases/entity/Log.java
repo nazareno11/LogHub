@@ -1,62 +1,58 @@
 package com.LogHub.features.clases.entity;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
+@Table(name = "logs")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "logs")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Log {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 1000)
     private String message;
 
     @Enumerated(EnumType.STRING)
-    private LogLevel logLevel; //enum
+    @Column(nullable = false)
+    private LogLevel logLevel;
 
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "application_id", nullable = false)
-    @JsonIgnore
     private Application application;
 
-    /*ext*/
-    private String level;       
-    private String clienteIp;
-    private String httpMetod;
+    @Column(name = "client_ip")
+    private String clientIp;
+
+    @Column(name = "http_method", length = 10)
+    private String httpMethod;
+
+    @Column(length = 500)
     private String endpoint;
 
-    /*Registrar momento en el que se inicia el Log */
+    @Column(name = "status_code")
+    private Integer statusCode;
+
+    @Column(name = "duration_ms")
+    private Long durationMs;
+
     @PrePersist
-    public void prePersist() {
-        this.timestamp = LocalDateTime.now();
+    protected void onCreate() {
+        if (timestamp == null) {
+            timestamp = LocalDateTime.now();
+        }
     }
 }
