@@ -30,6 +30,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
             RequestContext.setStatusCode(response.getStatus());
             RequestContext.setDurationMs(durationMs);
+
+            RequestContext.clear();
         }
     }
 }

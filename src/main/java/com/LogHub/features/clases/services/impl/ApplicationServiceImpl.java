@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.LogHub.config.exceptions.EmailAlreadyRegisteredException;
 import com.LogHub.features.clases.dtos.request.ApplicationRequestDTO;
+import com.LogHub.features.clases.dtos.response.ApplicationListResponseDTO;
 import com.LogHub.features.clases.dtos.response.ApplicationResponseDTO;
 import com.LogHub.features.clases.mappers.ApplicationMapper;
 import com.LogHub.features.clases.repository.IApplicationRepository;
@@ -23,20 +24,27 @@ public class ApplicationServiceImpl implements IApplicationService {
     public ApplicationResponseDTO registerApplication(ApplicationRequestDTO dto) {
 
         if (applicationRepository.existsByEmail(dto.getEmail())) {
-            throw new EmailAlreadyRegisteredException("El email ya está registrado"); 
+            throw new EmailAlreadyRegisteredException(
+                    "El email ya está registrado");
         }
-        
 
         var application = ApplicationMapper.toEntity(dto);
         var savedApp = applicationRepository.save(application);
+
         return ApplicationMapper.toResponseDTO(savedApp);
     }
 
     @Override
-    public List<ApplicationResponseDTO> getAllApplications() {
+    public List<ApplicationListResponseDTO> getAllApplications() {
+
         return applicationRepository.findAll()
                 .stream()
-                .map(ApplicationMapper::toResponseDTO)
+                .map(application -> ApplicationListResponseDTO.builder()
+                        .id(application.getId())
+                        .name(application.getName())
+                        .description(application.getDescription())
+                        .email(application.getEmail())
+                        .build())
                 .toList();
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.LogHub.features.clases.dtos.request.ApplicationRequestDTO;
+import com.LogHub.features.clases.dtos.response.ApplicationListResponseDTO;
 import com.LogHub.features.clases.dtos.response.ApplicationResponseDTO;
 import com.LogHub.features.clases.services.interfaces.IApplicationService;
 
@@ -23,35 +24,44 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/applications")
 @RequiredArgsConstructor
-@Tag(name = "Applications", description = "Gestión de aplicaciones cliente que envían logs")
+@Tag(
+    name = "Applications",
+    description = "Gestión de aplicaciones cliente que envían logs"
+)
 public class ApplicationController {
-    //swagger http://localhost:8080/swagger-ui/index.html
 
     private final IApplicationService applicationService;
 
-    /*POST */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) 
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(
-            summary = "Registrar una nueva aplicación",
-            description = "Registra una aplicación cliente y genera automáticamente su API Key"
+        summary = "Registrar una nueva aplicación",
+        description = "Registra una aplicación cliente y genera automáticamente su API Key"
     )
-    @ApiResponse(responseCode = "201", description = "Aplicación registrada correctamente")
-    @ApiResponse(responseCode = "400", description = "Error de validación o email duplicado")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Aplicación registrada correctamente"
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Error de validación o email duplicado"
+    )
     public ApplicationResponseDTO registerApplication(
             @Valid @RequestBody ApplicationRequestDTO requestDTO) {
 
         return applicationService.registerApplication(requestDTO);
     }
-    
-    /*GET */
+
     @GetMapping
     @Operation(
-            summary = "Listar aplicaciones registradas",
-            description = "Devuelve todas las aplicaciones que pueden enviar logs al sistema"
+        summary = "Listar aplicaciones registradas",
+        description = "Devuelve todas las aplicaciones sin exponer sus API Keys"
     )
-    @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
-    public List<ApplicationResponseDTO> getAllApplications() {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Listado obtenido correctamente"
+    )
+    public List<ApplicationListResponseDTO> getAllApplications() {
         return applicationService.getAllApplications();
     }
 }

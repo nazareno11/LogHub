@@ -1,24 +1,31 @@
 package com.LogHub.features.clases.dtos.request;
 
-import com.LogHub.features.clases.entity.LogLevel;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LogRequestDTO {
 
     @NotBlank(message = "El mensaje es obligatorio")
-    @Schema(description = "Descripción del evento", example = "Intento de login fallido")
     private String message;
 
-    @NotNull(message = "El nivel de log es obligatorio")
-    @Schema(description = "Nivel de severidad", example = "WARNING")
-    private LogLevel logLevel;
+    @NotNull(message = "El nivel del log es obligatorio")
+    private com.LogHub.features.clases.entity.LogLevel logLevel;
 
-    @NotNull(message = "El ID de la aplicación es obligatorio")
-    @Schema(description = "ID de la app que genera el log", example = "1")
+    @NotNull(message = "El appId es obligatorio")
     private Long appId;
+
+    @NotNull(message = "El código de estado es obligatorio")
+    private Integer statusCode;
+
+    @NotNull(message = "La duración es obligatoria")
+    private Long durationMs;
 }
+

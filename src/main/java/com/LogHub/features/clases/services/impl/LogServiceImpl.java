@@ -1,5 +1,6 @@
 package com.LogHub.features.clases.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -44,12 +45,14 @@ public class LogServiceImpl implements ILogService {
 
         Log log = logMapper.toEntity(dto, application);
 
+        // Datos de la petición que HENNOVO realizó hacia LogHub
         log.setClientIp(RequestContext.getClientIp());
         log.setHttpMethod(RequestContext.getHttpMethod());
         log.setEndpoint(RequestContext.getEndpoint());
 
-        log.setStatusCode(RequestContext.getStatusCode());
-        log.setDurationMs(RequestContext.getDurationMs());
+        if (log.getTimestamp() == null) {
+            log.setTimestamp(LocalDateTime.now());
+        }
 
         Log savedLog = logRepository.save(log);
 
@@ -75,8 +78,8 @@ public class LogServiceImpl implements ILogService {
     @Transactional(readOnly = true)
     public List<LogResponseDTO> getLogsByApplicationAndDates(
             Long appId,
-            java.time.LocalDateTime from,
-            java.time.LocalDateTime to) {
+            LocalDateTime from,
+            LocalDateTime to) {
 
         if (!applicationRepository.existsById(appId)) {
             throw new ApplicationNotFoundException(
@@ -90,3 +93,4 @@ public class LogServiceImpl implements ILogService {
                 .toList();
     }
 }
+

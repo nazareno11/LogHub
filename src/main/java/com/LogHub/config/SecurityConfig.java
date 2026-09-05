@@ -30,13 +30,18 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            
-            .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(apiKeyFilter(), RequestLoggingFilter.class)
+            .addFilterBefore(
+                requestLoggingFilter,
+                UsernamePasswordAuthenticationFilter.class
+            )
 
-           
+            .addFilterAfter(
+                apiKeyFilter(),
+                RequestLoggingFilter.class
+            )
+
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()   
+                .anyRequest().permitAll()
             );
 
         return http.build();

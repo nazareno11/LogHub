@@ -15,6 +15,8 @@ public class LogMapper {
                 .message(dto.getMessage())
                 .logLevel(dto.getLogLevel())
                 .application(application)
+                .statusCode(dto.getStatusCode())
+                .durationMs(dto.getDurationMs())
                 .build();
     }
 
@@ -36,3 +38,4 @@ public class LogMapper {
                 .build();
     }
 }
+
