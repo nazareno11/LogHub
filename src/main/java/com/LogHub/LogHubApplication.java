@@ -2,27 +2,12 @@ package com.LogHub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-
-
-import io.github.cdimascio.dotenv.Dotenv;
+import com.LogHub.config.EnvLoader;
 
 @SpringBootApplication
 public class LogHubApplication {
-
     public static void main(String[] args) {
-
-        Dotenv dotenv = Dotenv.configure()
-                .directory("./LogHub")
-                .ignoreIfMalformed()
-                .ignoreIfMissing()
-                .load();
-
-
-        System.setProperty("DB_URL", dotenv.get("DB_URL"));
-        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-
+        EnvLoader.load();
         SpringApplication.run(LogHubApplication.class, args);
     }
 }
