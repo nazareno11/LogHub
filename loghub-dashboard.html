@@ -6,6 +6,7 @@
 <title>LogHub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:        #120F0A;
@@ -235,6 +236,47 @@
   .banner code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:3px;}
   .banner button{margin-left:auto;flex-shrink:0;}
 
+  .charts-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:900px){
+    .charts-grid{grid-template-columns:1fr;}
+  }
+  .chart-card{
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:4px;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-width:0;
+  }
+  .chart-card h3{
+    margin:0;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.3px;
+    color:var(--dim);
+    text-transform:uppercase;
+  }
+  .chart-card .chart-box{
+    position:relative;
+    height:150px;
+  }
+  .chart-card .chart-empty{
+    position:absolute;
+    inset:0;
+    color:var(--dim);
+    font-size:11.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+
   .log-table-wrap{
     border:1px solid var(--border);
     border-radius:4px;
@@ -403,6 +445,7 @@ const state = {
   selectedApp: null,
   logs: null,
   loadingLogs: false,
+  charts: {timeline:null, level:null, status:null},
 };
 
 function backendUrl(){
@@ -563,7 +606,14 @@ function selectApp(app){
   loadLogs();
 }
 
+function destroyCharts(){
+  Object.keys(state.charts).forEach(k => {
+    if(state.charts[k]){ state.charts[k].destroy(); state.charts[k] = null; }
+  });
+}
+
 function renderMain(){
+  destroyCharts();
   const app = state.selectedApp;
   const main = el('main');
   if(!app){
@@ -594,6 +644,21 @@ function renderMain(){
     </div>
 
     <div id="mainBanner"></div>
+
+    <div class="charts-grid" id="chartsGrid">
+      <div class="chart-card">
+        <h3>Actividad en el tiempo</h3>
+        <div class="chart-box"><canvas id="timelineChart"></canvas><div class="chart-empty" id="timelineChartEmpty" style="display:none;">sin datos para graficar</div></div>
+      </div>
+      <div class="chart-card">
+        <h3>Por nivel</h3>
+        <div class="chart-box"><canvas id="levelChart"></canvas><div class="chart-empty" id="levelChartEmpty" style="display:none;">sin datos</div></div>
+      </div>
+      <div class="chart-card">
+        <h3>Status codes</h3>
+        <div class="chart-box"><canvas id="statusChart"></canvas><div class="chart-empty" id="statusChartEmpty" style="display:none;">sin datos</div></div>
+      </div>
+    </div>
 
     <div id="logTableWrap"></div>
 
@@ -687,16 +752,20 @@ function renderLogTable(){
 
   if(state.loadingLogs){
     wrap.innerHTML = `<div class="placeholder"><span class="spin"></span>&nbsp; cargando logs…</div>`;
+    renderCharts([]);
     return;
   }
   if(state.logs === null){
     wrap.innerHTML = '';
+    renderCharts([]);
     return;
   }
   if(state.logs.length === 0){
     wrap.innerHTML = `<div class="placeholder">No hay logs en este rango todavía. Cuando la aplicación empiece a enviar eventos, van a aparecer acá.</div>`;
+    renderCharts([]);
     return;
   }
+  renderCharts(state.logs);
 
   const rows = state.logs
     .slice()
@@ -734,6 +803,163 @@ function formatTs(iso){
   const d = new Date(iso);
   if(isNaN(d)) return iso;
   return d.toLocaleString('es-AR', {hour12:false});
+}
+
+/* ---------------- Charts ---------------- */
+
+const LEVEL_COLORS = {
+  INFO:'#6FA8DC', WARNING:'#F2A93B', ERROR:'#E15554', CRITICAL:'#C23B6D',
+};
+
+const chartFont = { family: "'IBM Plex Mono', monospace", size: 10 };
+
+Chart.defaults.color = '#9C9284';
+Chart.defaults.borderColor = '#332A1E';
+Chart.defaults.font = chartFont;
+
+function setChartEmpty(canvasId, isEmpty){
+  const canvas = el(canvasId);
+  const emptyEl = el(canvasId + 'Empty');
+  if(!canvas || !emptyEl) return;
+  canvas.style.visibility = isEmpty ? 'hidden' : 'visible';
+  emptyEl.style.display = isEmpty ? 'flex' : 'none';
+}
+
+function renderCharts(logs){
+  if(!el('chartsGrid')) return;
+
+  if(!logs || logs.length === 0){
+    destroyCharts();
+    setChartEmpty('timelineChart', true);
+    setChartEmpty('levelChart', true);
+    setChartEmpty('statusChart', true);
+    return;
+  }
+
+  setChartEmpty('timelineChart', false);
+  setChartEmpty('levelChart', false);
+  setChartEmpty('statusChart', false);
+  renderTimelineChart(logs);
+  renderLevelChart(logs);
+  renderStatusChart(logs);
+}
+
+function renderTimelineChart(logs){
+  const canvas = el('timelineChart');
+  if(!canvas) return;
+
+  // agrupa por hora (yyyy-MM-dd HH:00)
+  const buckets = {};
+  logs.forEach(log => {
+    const d = new Date(log.timestamp);
+    if(isNaN(d)) return;
+    d.setMinutes(0,0,0);
+    const key = d.toISOString();
+    buckets[key] = (buckets[key] || 0) + 1;
+  });
+  const keys = Object.keys(buckets).sort();
+  const labels = keys.map(k => new Date(k).toLocaleString('es-AR', {day:'2-digit', month:'2-digit', hour:'2-digit', hour12:false}));
+  const data = keys.map(k => buckets[k]);
+
+  if(state.charts.timeline){ state.charts.timeline.destroy(); }
+  state.charts.timeline = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#F2A93B',
+        backgroundColor: 'rgba(242,169,59,.12)',
+        pointRadius: 2,
+        pointBackgroundColor: '#F2A93B',
+        borderWidth: 1.5,
+        fill: true,
+        tension: .25,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid: { color:'#241D15' }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+        y: { grid: { color:'#241D15' }, beginAtZero:true, ticks:{ precision:0 } },
+      },
+    },
+  });
+}
+
+function renderLevelChart(logs){
+  const canvas = el('levelChart');
+  if(!canvas) return;
+
+  const order = ['INFO','WARNING','ERROR','CRITICAL'];
+  const counts = order.map(lvl => logs.filter(l => l.logLevel === lvl).length);
+
+  if(state.charts.level){ state.charts.level.destroy(); }
+  state.charts.level = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: order,
+      datasets: [{
+        data: counts,
+        backgroundColor: order.map(l => LEVEL_COLORS[l]),
+        borderRadius: 3,
+        maxBarThickness: 34,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid: { display:false } },
+        y: { grid: { color:'#241D15' }, beginAtZero:true, ticks:{ precision:0 } },
+      },
+    },
+  });
+}
+
+function renderStatusChart(logs){
+  const canvas = el('statusChart');
+  if(!canvas) return;
+
+  const groups = {'2xx':0, '3xx':0, '4xx':0, '5xx':0, 'sin status':0};
+  logs.forEach(l => {
+    const s = l.statusCode;
+    if(s == null) groups['sin status']++;
+    else if(s < 300) groups['2xx']++;
+    else if(s < 400) groups['3xx']++;
+    else if(s < 500) groups['4xx']++;
+    else groups['5xx']++;
+  });
+  const entries = Object.entries(groups).filter(([,v]) => v > 0);
+  const colors = { '2xx':'#6FBF73', '3xx':'#6FA8DC', '4xx':'#F2A93B', '5xx':'#E15554', 'sin status':'#6B6255' };
+
+  if(state.charts.status){ state.charts.status.destroy(); }
+  state.charts.status = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{
+        data: entries.map(e => e[1]),
+        backgroundColor: entries.map(e => colors[e[0]]),
+        borderColor: '#1C1712',
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 10, padding: 8, font: { size: 10 } },
+        },
+      },
+    },
+  });
 }
 
 async function sendTestLog(){
