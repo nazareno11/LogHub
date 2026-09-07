@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        #120F0A;
+    --panel:     #1C1712;
+    --panel-2:   #241D15;
+    --border:    #332A1E;
+    --text:      #EDE6DA;
+    --muted:     #9C9284;
+    --dim:       #6B6255;
+    --accent:    #F2A93B;
+    --accent-dim:#8A6321;
+    --info:      #6FA8DC;
+    --warning:   #F2A93B;
+    --error:     #E15554;
+    --critical:  #C23B6D;
+    --ok:        #6FBF73;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  ::selection{background:var(--accent-dim);color:var(--text);}
+  input, button{
+    font-family:inherit;
+    font-size:13px;
+    color:var(--text);
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:7px 10px;
+    outline:none;
+  }
+  input::placeholder{color:var(--dim);}
+  input:focus{border-color:var(--accent-dim);}
+  button{
+    cursor:pointer;
+    color:var(--bg);
+    background:var(--accent);
+    border-color:var(--accent);
+    font-weight:600;
+    letter-spacing:.2px;
+    transition:filter .12s ease;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{filter:brightness(.94);}
+  button:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+  button.ghost{
+    background:transparent;
+    color:var(--text);
+    border-color:var(--border);
+    font-weight:500;
+  }
+  button.ghost:hover{border-color:var(--accent-dim);}
+  button.danger{background:var(--error);border-color:var(--error);color:#1a0d0d;}
+
+  a{color:var(--accent);}
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:12px 20px;
+    border-bottom:1px solid var(--border);
+    background:var(--panel);
+    flex-wrap:wrap;
+  }
+  .wordmark{
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:.3px;
+    white-space:nowrap;
+  }
+  .wordmark span{color:var(--accent);}
+  .topbar-fields{
+    display:flex;
+    gap:10px;
+    flex:1;
+    flex-wrap:wrap;
+    min-width:0;
+  }
+  .field-inline{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+  }
+  .field-inline label{
+    color:var(--dim);
+    font-size:11px;
+    white-space:nowrap;
+  }
+  .field-inline input{width:170px;}
+  .status-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--dim);
+    flex-shrink:0;
+  }
+  .status-dot.ok{background:var(--ok);}
+  .status-dot.bad{background:var(--error);}
+  .status-wrap{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;white-space:nowrap;}
+
+  /* ---------- layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    min-height:calc(100vh - 53px);
+  }
+  @media (max-width:820px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    border-right:1px solid var(--border);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .sidebar-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .section-title{
+    color:var(--dim);
+    font-size:11px;
+    letter-spacing:.4px;
+    font-weight:600;
+  }
+  .app-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .app-card{
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:4px;
+    padding:10px 12px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .app-card:hover{border-color:var(--accent-dim);}
+  .app-card.active{border-color:var(--accent);background:var(--panel-2);}
+  .app-card .name{font-weight:600;font-size:13px;}
+  .app-card .desc{color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .app-card .id{color:var(--dim);font-size:10.5px;}
+
+  .empty-note{
+    color:var(--dim);
+    font-size:12px;
+    padding:14px 4px;
+    line-height:1.6;
+  }
+
+  .new-app-form{
+    border:1px dashed var(--border);
+    border-radius:4px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .new-app-form input{width:100%;}
+  .form-row{display:flex;flex-direction:column;gap:4px;}
+  .form-row label{font-size:11px;color:var(--dim);}
+  .form-actions{display:flex;gap:8px;margin-top:2px;}
+
+  /* ---------- main ---------- */
+  .main{
+    padding:20px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-width:0;
+  }
+  .main-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .main-head h1{
+    font-size:17px;
+    margin:0;
+    font-weight:700;
+  }
+  .main-head .meta{color:var(--muted);font-size:12px;}
+
+  .filters{
+    display:flex;
+    gap:8px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:4px;
+    padding:12px;
+  }
+  .filters .form-row{min-width:150px;}
+  .filters input[type="datetime-local"]{width:100%;}
+
+  .banner{
+    border-radius:4px;
+    padding:10px 14px;
+    font-size:12.5px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    border:1px solid transparent;
+  }
+  .banner.error{background:#2A1414;border-color:var(--error);color:#F3B7B4;}
+  .banner.ok{background:#152A1A;border-color:var(--ok);color:#BFE8C5;}
+  .banner.key{background:#241D0D;border-color:var(--accent);color:#F5D89B;}
+  .banner code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:3px;}
+  .banner button{margin-left:auto;flex-shrink:0;}
+
+  .log-table-wrap{
+    border:1px solid var(--border);
+    border-radius:4px;
+    overflow:hidden;
+    background:var(--panel);
+  }
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{
+    text-align:left;
+    color:var(--dim);
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:.3px;
+    padding:9px 12px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:9px 12px;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{border-left:3px solid transparent;}
+  tbody tr.INFO{border-left-color:var(--info);}
+  tbody tr.WARNING{border-left-color:var(--warning);}
+  tbody tr.ERROR{border-left-color:var(--error);}
+  tbody tr.CRITICAL{border-left-color:var(--critical);}
+  .level-tag{
+    font-size:10.5px;
+    font-weight:700;
+    padding:2px 6px;
+    border-radius:3px;
+    letter-spacing:.3px;
+    white-space:nowrap;
+  }
+  .level-tag.INFO{color:var(--info);background:rgba(111,168,220,.12);}
+  .level-tag.WARNING{color:var(--warning);background:rgba(242,169,59,.12);}
+  .level-tag.ERROR{color:var(--error);background:rgba(225,85,84,.12);}
+  .level-tag.CRITICAL{color:var(--critical);background:rgba(194,59,109,.12);}
+  .status-code{color:var(--muted);}
+  .status-code.err{color:var(--error);}
+  .msg-cell{max-width:340px;word-break:break-word;}
+  .ts-cell{white-space:nowrap;color:var(--muted);}
+
+  .send-log-toggle{
+    color:var(--dim);
+    font-size:12px;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:2px;
+    width:fit-content;
+  }
+  .send-log-form{
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:4px;
+    padding:14px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+  .send-log-form select{
+    font-family:inherit;font-size:13px;color:var(--text);
+    background:var(--panel-2);border:1px solid var(--border);
+    border-radius:3px;padding:7px 10px;
+  }
+  .send-log-form .form-row{min-width:140px;}
+  .send-log-form input[type="text"]{width:100%;}
+
+  .placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--dim);
+    font-size:13px;
+    border:1px dashed var(--border);
+    border-radius:4px;
+    padding:60px 20px;
+    text-align:center;
+    line-height:1.7;
+  }
+  .placeholder strong{color:var(--muted);}
+  .spin{
+    display:inline-block;width:11px;height:11px;
+    border:2px solid var(--dim);border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    vertical-align:-1px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wordmark">Log<span>Hub</span></div>
+  <div class="topbar-fields">
+    <div class="field-inline">
+      <label for="backendUrl">backend</label>
+      <input id="backendUrl" type="text" value="http://localhost:8081" spellcheck="false">
+    </div>
+    <div class="field-inline">
+      <label for="adminKey">admin key</label>
+      <input id="adminKey" type="password" placeholder="X-ADMIN-API-KEY" spellcheck="false">
+    </div>
+    <div class="field-inline">
+      <label for="appKey">api key</label>
+      <input id="appKey" type="password" placeholder="X-API-KEY (para leer/enviar logs)" spellcheck="false">
+    </div>
+  </div>
+  <div class="status-wrap">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">sin verificar</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <span class="section-title">APLICACIONES</span>
+      <button class="ghost" id="toggleNewApp" style="font-size:11px;padding:5px 9px;">+ nueva</button>
+    </div>
+
+    <div class="new-app-form" id="newAppForm" style="display:none;">
+      <div class="form-row">
+        <label>Nombre</label>
+        <input id="newAppName" type="text" placeholder="Sistema de Ventas">
+      </div>
+      <div class="form-row">
+        <label>Descripción</label>
+        <input id="newAppDesc" type="text" placeholder="Qué hace esta aplicación">
+      </div>
+      <div class="form-row">
+        <label>Email</label>
+        <input id="newAppEmail" type="text" placeholder="equipo@empresa.com">
+      </div>
+      <div class="form-actions">
+        <button id="createAppBtn">Registrar</button>
+        <button class="ghost" id="cancelNewApp">Cancelar</button>
+      </div>
+    </div>
+
+    <div id="sidebarBanner"></div>
+
+    <div class="app-list" id="appList">
+      <div class="empty-note">Ingresá tu admin key arriba y presioná "cargar" para listar las aplicaciones registradas.</div>
+    </div>
+
+    <button class="ghost" id="reloadAppsBtn">↻ cargar aplicaciones</button>
+  </div>
+
+  <div class="main" id="main">
+    <div class="placeholder">
+      Elegí una aplicación de la lista, o registrá una nueva, para ver su actividad acá.
+    </div>
+  </div>
+</div>
+
+<script>
+const el = (id) => document.getElementById(id);
+
+const state = {
+  apps: [],
+  selectedApp: null,
+  logs: null,
+  loadingLogs: false,
+};
+
+function backendUrl(){
+  return el('backendUrl').value.trim().replace(/\/+$/,'');
+}
+function adminKey(){ return el('adminKey').value.trim(); }
+function appKey(){ return el('appKey').value.trim(); }
+
+function setStatus(kind, text){
+  const dot = el('statusDot');
+  dot.className = 'status-dot' + (kind ? ' ' + kind : '');
+  el('statusText').textContent = text;
+}
+
+async function apiFetch(path, {method='GET', headers={}, body=null} = {}){
+  const url = backendUrl() + path;
+  let res;
+  try{
+    res = await fetch(url, {
+      method,
+      headers: {'Content-Type':'application/json', ...headers},
+      body: body ? JSON.stringify(body) : null,
+    });
+  }catch(e){
+    throw new Error('No se pudo conectar con ' + url + '. Revisá que el backend esté corriendo y que tenga CORS habilitado.');
+  }
+  let data = null;
+  const text = await res.text();
+  if(text){
+    try{ data = JSON.parse(text); }catch(e){ data = text; }
+  }
+  if(!res.ok){
+    const msg = (data && (data.message || data.error)) || (typeof data === 'string' ? data : null) || ('Error ' + res.status);
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+function banner(kind, html, {dismissible=true} = {}){
+  const id = 'b' + Math.random().toString(36).slice(2);
+  return `<div class="banner ${kind}" id="${id}">
+    <div>${html}</div>
+    ${dismissible ? `<button class="ghost" style="padding:2px 8px;font-size:11px;" onclick="document.getElementById('${id}').remove()">×</button>` : ''}
+  </div>`;
+}
+
+/* ---------------- Applications ---------------- */
+
+el('toggleNewApp').addEventListener('click', () => {
+  const form = el('newAppForm');
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+  form.style.flexDirection = 'column';
+});
+el('cancelNewApp').addEventListener('click', () => {
+  el('newAppForm').style.display = 'none';
+});
+
+el('createAppBtn').addEventListener('click', async () => {
+  const name = el('newAppName').value.trim();
+  const description = el('newAppDesc').value.trim();
+  const email = el('newAppEmail').value.trim();
+  const sidebarBanner = el('sidebarBanner');
+
+  if(!name || !description || !email){
+    sidebarBanner.innerHTML = banner('error', 'Completá nombre, descripción y email antes de registrar.');
+    return;
+  }
+  if(!adminKey()){
+    sidebarBanner.innerHTML = banner('error', 'Ingresá la admin key en la barra superior primero.');
+    return;
+  }
+
+  const btn = el('createAppBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> registrando';
+
+  try{
+    const created = await apiFetch('/applications', {
+      method: 'POST',
+      headers: {'X-ADMIN-API-KEY': adminKey()},
+      body: {name, description, email},
+    });
+    sidebarBanner.innerHTML = banner('key',
+      `Aplicación <strong>${created.name}</strong> registrada. Guardá su API Key ahora, no se va a volver a mostrar:<br><code>${created.apiKey}</code>`,
+      {dismissible:true});
+    el('newAppName').value = '';
+    el('newAppDesc').value = '';
+    el('newAppEmail').value = '';
+    el('newAppForm').style.display = 'none';
+    await loadApplications();
+  }catch(e){
+    sidebarBanner.innerHTML = banner('error', e.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Registrar';
+  }
+});
+
+el('reloadAppsBtn').addEventListener('click', loadApplications);
+
+async function loadApplications(){
+  const listEl = el('appList');
+  const sidebarBanner = el('sidebarBanner');
+
+  if(!adminKey()){
+    sidebarBanner.innerHTML = banner('error', 'Ingresá la admin key en la barra superior para listar las aplicaciones.');
+    return;
+  }
+
+  listEl.innerHTML = `<div class="empty-note"><span class="spin"></span>&nbsp; cargando aplicaciones…</div>`;
+
+  try{
+    const apps = await apiFetch('/applications', {headers: {'X-ADMIN-API-KEY': adminKey()}});
+    state.apps = apps;
+    setStatus('ok', 'conectado · ' + apps.length + ' app' + (apps.length===1?'':'s'));
+    renderAppList();
+  }catch(e){
+    setStatus('bad', 'error de conexión');
+    listEl.innerHTML = `<div class="empty-note">No se pudo cargar la lista.</div>`;
+    sidebarBanner.innerHTML = banner('error', e.message);
+  }
+}
+
+function renderAppList(){
+  const listEl = el('appList');
+  if(state.apps.length === 0){
+    listEl.innerHTML = `<div class="empty-note">Todavía no hay aplicaciones registradas. Creá la primera con "+ nueva".</div>`;
+    return;
+  }
+  listEl.innerHTML = state.apps.map(app => `
+    <div class="app-card ${state.selectedApp && state.selectedApp.id===app.id ? 'active':''}" data-id="${app.id}">
+      <span class="name">${escapeHtml(app.name)}</span>
+      <span class="desc">${escapeHtml(app.description)}</span>
+      <span class="id">id ${app.id} · ${escapeHtml(app.email)}</span>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.app-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const app = state.apps.find(a => String(a.id) === card.dataset.id);
+      selectApp(app);
+    });
+  });
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- Logs ---------------- */
+
+function selectApp(app){
+  state.selectedApp = app;
+  state.logs = null;
+  renderAppList();
+  renderMain();
+  loadLogs();
+}
+
+function renderMain(){
+  const app = state.selectedApp;
+  const main = el('main');
+  if(!app){
+    main.innerHTML = `<div class="placeholder">Elegí una aplicación de la lista, o registrá una nueva, para ver su actividad acá.</div>`;
+    return;
+  }
+
+  main.innerHTML = `
+    <div class="main-head">
+      <div>
+        <h1>${escapeHtml(app.name)}</h1>
+        <div class="meta">id ${app.id} · ${escapeHtml(app.email)}</div>
+      </div>
+      <button class="ghost" id="reloadLogsBtn">↻ recargar logs</button>
+    </div>
+
+    <div class="filters">
+      <div class="form-row">
+        <label>Desde</label>
+        <input type="datetime-local" id="filterFrom">
+      </div>
+      <div class="form-row">
+        <label>Hasta</label>
+        <input type="datetime-local" id="filterTo">
+      </div>
+      <button id="applyFilterBtn">Filtrar</button>
+      <button class="ghost" id="clearFilterBtn">Ver todo</button>
+    </div>
+
+    <div id="mainBanner"></div>
+
+    <div id="logTableWrap"></div>
+
+    <div class="send-log-toggle" id="toggleSendLog">+ enviar log de prueba con la api key de arriba</div>
+    <div class="send-log-form" id="sendLogForm" style="display:none;">
+      <div class="form-row">
+        <label>Mensaje</label>
+        <input type="text" id="sendLogMessage" placeholder="GET /tasks -> 200">
+      </div>
+      <div class="form-row">
+        <label>Nivel</label>
+        <select id="sendLogLevel">
+          <option>INFO</option>
+          <option>WARNING</option>
+          <option>ERROR</option>
+          <option>CRITICAL</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Status code</label>
+        <input type="text" id="sendLogStatus" placeholder="200" style="width:90px;">
+      </div>
+      <div class="form-row">
+        <label>Duración (ms)</label>
+        <input type="text" id="sendLogDuration" placeholder="42" style="width:90px;">
+      </div>
+      <button id="sendLogBtn">Enviar</button>
+    </div>
+  `;
+
+  el('reloadLogsBtn').addEventListener('click', () => loadLogs());
+  el('applyFilterBtn').addEventListener('click', () => {
+    const from = el('filterFrom').value;
+    const to = el('filterTo').value;
+    if(!from || !to){
+      el('mainBanner').innerHTML = banner('error', 'Elegí ambas fechas para filtrar.');
+      return;
+    }
+    loadLogs({from, to});
+  });
+  el('clearFilterBtn').addEventListener('click', () => {
+    el('filterFrom').value = '';
+    el('filterTo').value = '';
+    loadLogs();
+  });
+  el('toggleSendLog').addEventListener('click', () => {
+    const f = el('sendLogForm');
+    f.style.display = f.style.display === 'none' ? 'flex' : 'none';
+  });
+  el('sendLogBtn').addEventListener('click', sendTestLog);
+
+  renderLogTable();
+}
+
+async function loadLogs(range){
+  state.loadingLogs = true;
+  renderLogTable();
+
+  if(!appKey()){
+    el('mainBanner').innerHTML = banner('error', 'Ingresá una API Key válida (de cualquier aplicación) en la barra superior para leer logs.');
+    state.loadingLogs = false;
+    state.logs = [];
+    renderLogTable();
+    return;
+  }
+
+  const app = state.selectedApp;
+  let path = `/logs/application/${app.id}`;
+  if(range){
+    const from = new Date(range.from).toISOString().slice(0,19);
+    const to = new Date(range.to).toISOString().slice(0,19);
+    path += `/dates?from=${from}&to=${to}`;
+  }
+
+  try{
+    const logs = await apiFetch(path, {headers: {'X-API-KEY': appKey()}});
+    state.logs = logs;
+    el('mainBanner').innerHTML = '';
+  }catch(e){
+    state.logs = [];
+    el('mainBanner').innerHTML = banner('error', e.message);
+  }finally{
+    state.loadingLogs = false;
+    renderLogTable();
+  }
+}
+
+function renderLogTable(){
+  const wrap = el('logTableWrap');
+  if(!wrap) return;
+
+  if(state.loadingLogs){
+    wrap.innerHTML = `<div class="placeholder"><span class="spin"></span>&nbsp; cargando logs…</div>`;
+    return;
+  }
+  if(state.logs === null){
+    wrap.innerHTML = '';
+    return;
+  }
+  if(state.logs.length === 0){
+    wrap.innerHTML = `<div class="placeholder">No hay logs en este rango todavía. Cuando la aplicación empiece a enviar eventos, van a aparecer acá.</div>`;
+    return;
+  }
+
+  const rows = state.logs
+    .slice()
+    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .map(log => `
+      <tr class="${log.logLevel}">
+        <td class="ts-cell">${formatTs(log.timestamp)}</td>
+        <td><span class="level-tag ${log.logLevel}">${log.logLevel}</span></td>
+        <td class="msg-cell">${escapeHtml(log.message)}</td>
+        <td>${escapeHtml(log.httpMethod || '—')}</td>
+        <td>${escapeHtml(log.endpoint || '—')}</td>
+        <td class="status-code ${log.statusCode >= 400 ? 'err':''}">${log.statusCode ?? '—'}</td>
+        <td>${log.durationMs != null ? log.durationMs + 'ms' : '—'}</td>
+        <td class="ts-cell">${escapeHtml(log.clientIp || '—')}</td>
+      </tr>
+    `).join('');
+
+  wrap.innerHTML = `
+    <div class="log-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>timestamp</th><th>nivel</th><th>mensaje</th><th>método</th>
+            <th>endpoint</th><th>status</th><th>duración</th><th>ip</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function formatTs(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return d.toLocaleString('es-AR', {hour12:false});
+}
+
+async function sendTestLog(){
+  const app = state.selectedApp;
+  const message = el('sendLogMessage').value.trim();
+  const logLevel = el('sendLogLevel').value;
+  const statusCode = parseInt(el('sendLogStatus').value, 10);
+  const durationMs = parseInt(el('sendLogDuration').value, 10);
+  const mainBanner = el('mainBanner');
+
+  if(!message || isNaN(statusCode) || isNaN(durationMs)){
+    mainBanner.innerHTML = banner('error', 'Completá mensaje, status code y duración.');
+    return;
+  }
+  if(!appKey()){
+    mainBanner.innerHTML = banner('error', 'Necesitás la API Key de esta aplicación puntual en la barra superior para enviar un log.');
+    return;
+  }
+
+  const btn = el('sendLogBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> enviando';
+
+  try{
+    await apiFetch('/logs', {
+      method:'POST',
+      headers: {'X-API-KEY': appKey()},
+      body: {message, logLevel, appId: app.id, statusCode, durationMs},
+    });
+    mainBanner.innerHTML = banner('ok', 'Log enviado.');
+    el('sendLogMessage').value = '';
+    el('sendLogStatus').value = '';
+    el('sendLogDuration').value = '';
+    await loadLogs();
+  }catch(e){
+    mainBanner.innerHTML = banner('error', e.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Enviar';
+  }
+}
+
+// carga inicial: si ya hay admin key precargada, listamos
+if(adminKey()) loadApplications();
+</script>
+</body>
+</html>
