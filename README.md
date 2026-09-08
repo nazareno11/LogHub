@@ -373,3 +373,6 @@ LogHub almacena el evento junto con información adicional de la petición, como
 - Código de estado.
 - Duración.
 - Nivel del log.
+
+<img width="1400" height="1050" alt="image" src="https://github.com/user-attachments/assets/94567f45-084b-4fef-9d90-802e6a67561b" />
+
