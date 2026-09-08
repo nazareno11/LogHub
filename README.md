@@ -1,79 +1,22 @@
 # LogHub
 
-Sistema centralizado de monitoreo y registro de eventos para aplicaciones Spring Boot.
+LogHub es una API centralizada para registrar y consultar logs de aplicaciones externas.
 
-LogHub permite registrar y consultar eventos HTTP provenientes de aplicaciones externas mediante una API REST protegida con API Keys.
+Permite que distintas APIs envíen información sobre sus peticiones HTTP y almacenarla en un único lugar.
 
-Actualmente se encuentra integrado con **HENNOVO**, cuya API envía automáticamente información de sus peticiones HTTP a LogHub.
+## Tecnologías
 
----
-
-## Características
-
-* Registro centralizado de logs.
-* Autenticación mediante API Keys.
-* Registro de aplicaciones cliente.
-* Identificación de la aplicación que genera cada log.
-* Registro automático de:
-  * Método HTTP.
-  * Endpoint.
-  * Código de estado HTTP.
-  * Duración de la petición.
-  * Dirección IP del cliente.
-  * Fecha y hora.
-  * Nivel del log.
-* Clasificación automática de eventos según el código de estado.
-* Consulta de logs por aplicación.
-* Filtrado de logs por rango de fechas.
-* Persistencia con PostgreSQL.
-* Documentación mediante Swagger/OpenAPI.
-* Integración automática con aplicaciones Spring Boot mediante filtros HTTP.
-* Dashboard web para realizar pruebas y consultar los logs.
+- Java 21
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- PostgreSQL
+- Maven
+- Swagger / OpenAPI
 
 ---
 
-## Arquitectura
-
-```text
-┌──────────────┐
-│   HENNOVO    │
-│   :8080      │
-└──────┬───────┘
-       │
-       │ HTTP + API Key
-       ▼
-┌──────────────┐
-│    LogHub    │
-│   :8081      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  PostgreSQL  │
-└──────────────┘
-```
-
-HENNOVO intercepta automáticamente sus peticiones HTTP y envía a LogHub información sobre cada request.
-
-LogHub almacena los eventos y permite posteriormente consultarlos por aplicación y rango de fechas.
-
----
-
-## Tecnologías utilizadas
-
-* Java 21
-* Spring Boot
-* Spring Security
-* Spring Data JPA
-* PostgreSQL
-* Maven
-* Lombok
-* Swagger / OpenAPI
-* Java Dotenv
-
----
-
-# Configuración
+# Instalación
 
 ## 1. Clonar el repositorio
 
@@ -82,11 +25,9 @@ git clone [https://github.com/nazareno11/LogHub.git](https://github.com/nazareno
 cd LogHub
 ```
 
----
+## 2. Configurar las variables de entorno
 
-## 2. Configurar variables de entorno
-
-Crear un archivo `.env` en la raíz del proyecto.
+Crear un archivo `.env` en la raíz del proyecto:
 
 ```env
 DB_URL=jdbc:postgresql://HOST:PORT/DATABASE
@@ -96,11 +37,7 @@ DB_PASSWORD=TU_PASSWORD
 LOGHUB_ADMIN_API_KEY=TU_ADMIN_API_KEY
 ```
 
-La API Key administrativa se utiliza para administrar las aplicaciones registradas en LogHub.
-
 El archivo `.env` no debe subirse al repositorio.
-
----
 
 ## 3. Ejecutar LogHub
 
@@ -108,25 +45,29 @@ El archivo `.env` no debe subirse al repositorio.
 ./mvnw spring-boot:run
 ```
 
-LogHub se ejecuta en:
+Por defecto, LogHub se ejecuta en:
 
 ```text
 http://localhost:8081
 ```
 
-El puerto `8081` se utiliza para evitar conflictos con HENNOVO, que utiliza el puerto `8080`.
-
 ---
 
 # Health Check
 
-LogHub dispone de un endpoint para verificar que el servicio se encuentra funcionando:
+LogHub cuenta con un endpoint para verificar que el servicio se encuentra funcionando:
 
 ```http
 GET /health
 ```
 
-Ejemplo de respuesta:
+Ejemplo:
+
+```bash
+curl http://localhost:8081/health
+```
+
+Respuesta:
 
 ```json
 {
@@ -140,47 +81,57 @@ Ejemplo de respuesta:
 
 # Swagger
 
-La documentación interactiva de la API está disponible en:
+La documentación de la API está disponible en:
 
 ```text
 http://localhost:8081/swagger-ui/index.html
 ```
 
+Desde Swagger se pueden consultar y probar los endpoints disponibles.
+
 ---
 
-# API
+# Registrar una aplicación
 
-## Aplicaciones
+Antes de enviar logs, la aplicación que utilizará LogHub debe registrarse.
 
-### Registrar una aplicación
+### Crear aplicación
 
 ```http
 POST /applications
 ```
 
-Requiere:
+Requiere la API Key administrativa:
 
 ```http
-X-ADMIN-API-KEY: tu-admin-api-key
+X-ADMIN-API-KEY: TU_ADMIN_API_KEY
 ```
 
 Body:
 
 ```json
 {
-  "name": "HENNOVO",
-  "description": "API de gestión de HENNOVO",
+  "name": "Mi API",
+  "description": "API de ejemplo",
   "email": "ejemplo@email.com"
 }
 ```
 
-Al registrarse, la aplicación recibe una API Key propia.
+Ejemplo de respuesta:
 
-**La API Key debe guardarse de forma segura, ya que es la credencial utilizada por la aplicación para comunicarse con LogHub.**
+```json
+{
+  "id": 1,
+  "name": "Mi API",
+  "description": "API de ejemplo",
+  "email": "ejemplo@email.com",
+  "apiKey": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+}
+```
 
----
+La API Key generada pertenece exclusivamente a esa aplicación y debe guardarse de forma segura.
 
-### Listar aplicaciones
+### Consultar aplicaciones
 
 ```http
 GET /applications
@@ -189,271 +140,236 @@ GET /applications
 Requiere:
 
 ```http
-X-ADMIN-API-KEY: tu-admin-api-key
+X-ADMIN-API-KEY: TU_ADMIN_API_KEY
 ```
 
-Las API Keys de las aplicaciones no se exponen en este endpoint.
+Este endpoint devuelve las aplicaciones registradas, pero no expone sus API Keys.
 
 ---
 
-# Logs
+# Enviar logs
 
-## Registrar un log
+Una aplicación registrada puede enviar logs utilizando su API Key.
 
 ```http
 POST /logs
 ```
 
-Requiere:
+Header:
 
 ```http
-X-API-KEY: api-key-de-la-aplicacion
+X-API-KEY: API_KEY_DE_LA_APLICACION
+Content-Type: application/json
 ```
 
 Body:
 
 ```json
 {
-  "message": "GET /api/productos/todos",
+  "message": "GET /api/productos",
   "logLevel": "INFO",
   "appId": 1,
   "statusCode": 200,
-  "durationMs": 42
+  "durationMs": 45
 }
 ```
 
 ### Niveles disponibles
 
-```text
-INFO
-WARNING
-ERROR
-CRITICAL
-```
+- `INFO`
+- `WARNING`
+- `ERROR`
+- `CRITICAL`
 
-### Clasificación utilizada
+### Clasificación recomendada
 
 | Código HTTP | Nivel |
 | --- | --- |
-| 2xx | INFO |
-| 3xx | INFO |
-| 4xx | WARNING |
-| 5xx | ERROR |
-| Casos críticos específicos | CRITICAL |
+| 2xx | `INFO` |
+| 3xx | `INFO` |
+| 4xx | `WARNING` |
+| 5xx | `ERROR` |
+| Situaciones realmente críticas | `CRITICAL` |
 
 ---
 
-## Consultar logs de una aplicación
+# Consultar logs
+
+Para consultar los logs de una aplicación:
 
 ```http
 GET /logs/application/{appId}
 ```
 
-Requiere:
+Header:
 
 ```http
-X-API-KEY: api-key-de-la-aplicacion
+X-API-KEY: API_KEY_DE_LA_APLICACION
 ```
 
 Ejemplo:
 
-```text
-GET /logs/application/1
+```bash
+curl \
+  -H "X-API-KEY: API_KEY_DE_LA_APLICACION" \
+  http://localhost:8081/logs/application/1
 ```
 
----
+### Consultar logs por fecha
 
-## Filtrar logs por fecha
+También se pueden filtrar los logs por un rango de fechas:
 
 ```http
-GET /logs/application/{appId}/dates
+GET /logs/application/{appId}/dates?from=&to=
 ```
-
-Parámetros:
-
-* `from`
-* `to`
 
 Ejemplo:
 
-```text
+```http
 GET /logs/application/1/dates?from=2026-09-08T00:00:00&to=2026-09-08T23:59:59
 ```
 
+Header:
+
+```http
+X-API-KEY: API_KEY_DE_LA_APLICACION
+```
+
 ---
 
-# Integración con HENNOVO
+# Integrar otra API con LogHub
 
-LogHub se encuentra integrado con HENNOVO mediante un filtro HTTP.
+Cualquier API puede utilizar LogHub siempre que pueda realizar peticiones HTTP.
+La integración requiere tres datos:
 
-HENNOVO intercepta automáticamente las peticiones realizadas contra su API y, una vez obtenida la respuesta, envía a LogHub los datos principales de la operación.
+```env
+LOGHUB_URL=http://localhost:8081
+LOGHUB_API_KEY=API_KEY_DE_LA_APLICACION
+LOGHUB_APP_ID=ID_DE_LA_APLICACION
+```
 
-No es necesario agregar código de logging individual en cada controlador o servicio de HENNOVO.
+La aplicación debe enviar una petición `POST /logs` después de procesar cada request.
+Por ejemplo:
 
-### Flujo
+```json
+{
+  "message": "GET /api/clientes",
+  "logLevel": "INFO",
+  "appId": 1,
+  "statusCode": 200,
+  "durationMs": 38
+}
+```
+
+La API Key debe enviarse mediante el header:
+
+```http
+X-API-KEY: API_KEY_DE_LA_APLICACION
+```
+
+---
+
+## Integración automática
+
+En aplicaciones Spring Boot se puede implementar un filtro HTTP que:
+
+1. Registre el momento en que comienza la petición.
+2. Permita que la aplicación procese normalmente el request.
+3. Obtenga el código de estado de la respuesta.
+4. Calcule la duración.
+5. Determine el nivel del log.
+6. Envíe la información a LogHub.
+
+De esta forma no es necesario agregar código de logging manualmente en cada controlador.
+
+### Ejemplo del flujo:
 
 ```text
 Cliente
    │
    ▼
-HENNOVO
+API externa
    │
-   │ Request
-   ▼
-LogHubLoggingFilter
+   ├── Procesa request
    │
-   ▼
-Controlador HENNOVO
-   │
-   ▼
-Response
-   │
-   ▼
-LogHubClient
-   │
-   │ POST /logs
-   ▼
-LogHub
-   │
-   ▼
-PostgreSQL
-```
-
----
-
-## Configuración de HENNOVO
-
-En el `.env` de HENNOVO se deben configurar:
-
-```env
-LOGHUB_URL=http://localhost:8081
-LOGHUB_API_KEY=API_KEY_DE_HENNOVO
-LOGHUB_APP_ID=ID_DE_HENNOVO
-```
-
-Donde:
-
-* `LOGHUB_URL` indica la dirección donde se encuentra ejecutándose LogHub.
-* `LOGHUB_API_KEY` es la API Key asignada a HENNOVO.
-* `LOGHUB_APP_ID` es el identificador de HENNOVO registrado en LogHub.
-
----
-
-## Información registrada automáticamente
-
-Cada petición realizada contra HENNOVO puede generar un evento en LogHub con información como:
-
-```text
-Método HTTP
-Endpoint
-Código de estado
-Duración
-IP del cliente
-Fecha y hora
-Nivel del log
-Aplicación
-```
-
-Ejemplo:
-
-```text
-INFO
-GET /api/productos/todos
-Status: 200
-Duration: 42 ms
-```
-
-Un error de recurso inexistente:
-
-```text
-WARNING
-GET /api/productos/999999
-Status: 404
-Duration: 35 ms
-```
-
-Un error interno:
-
-```text
-ERROR
-POST /api/pagos
-Status: 500
-Duration: 350 ms
+   └── Envía información a LogHub
+              │
+              ▼
+           LogHub
+              │
+              ▼
+          PostgreSQL
 ```
 
 ---
 
 # Seguridad
 
-LogHub utiliza dos tipos de API Keys.
+LogHub utiliza dos tipos de API Keys:
 
-### API Key administrativa
+- **API Key administrativa (`X-ADMIN-API-KEY`)**: Se utiliza para administrar las aplicaciones registradas.
+- **API Key de aplicación (`X-API-KEY`)**: Cada aplicación registrada tiene su propia API Key.
 
-```text
-X-ADMIN-API-KEY
-```
-
-Se utiliza para operaciones administrativas, como registrar y consultar aplicaciones.
-
-### API Key de aplicación
-
-```text
-X-API-KEY
-```
-
-Cada aplicación registrada posee su propia API Key.
-
-Esta clave se utiliza para enviar y consultar los logs correspondientes a esa aplicación.
-
-Las API Keys no deben almacenarse en el código fuente ni subirse al repositorio.
-
----
-
-# Tolerancia a fallos
-
-La comunicación entre HENNOVO y LogHub está diseñada para que una falla de LogHub no impida el funcionamiento de HENNOVO.
-
-Si LogHub no se encuentra disponible, HENNOVO continúa procesando normalmente las peticiones y el error de comunicación se maneja dentro del cliente de logging.
-
-Esto evita que el sistema de monitoreo se convierta en una dependencia crítica de la aplicación principal.
+Las API Keys deben almacenarse mediante variables de entorno y nunca deben incluirse directamente en el código fuente ni subirse al repositorio.
 
 ---
 
 # Dashboard
 
-El proyecto cuenta con un dashboard web para realizar pruebas y visualizar los logs registrados.
+El proyecto incluye un dashboard web para realizar pruebas sobre LogHub.
+Desde el dashboard se puede:
 
-Desde el dashboard es posible:
+- Registrar aplicaciones.
+- Consultar aplicaciones.
+- Enviar logs.
+- Consultar logs.
+- Filtrar logs por fechas.
+- Visualizar método HTTP, endpoint, código de estado, duración e IP.
 
-* Configurar la URL de LogHub.
-* Utilizar la API Key administrativa.
-* Registrar aplicaciones.
-* Consultar aplicaciones registradas.
-* Utilizar la API Key de una aplicación.
-* Registrar logs manualmente.
-* Consultar logs.
-* Filtrar logs por fechas.
-* Visualizar método HTTP, endpoint, status, duración e IP.
+Para utilizarlo, configurar como URL del backend:
+
+```text
+http://localhost:8081
+```
+
+y utilizar las API Keys correspondientes.
 
 ---
 
-# Pruebas realizadas
+# Ejemplo de integración
 
-La integración fue probada verificando:
+Una aplicación externa puede registrar una petición como:
 
-* Registro de aplicaciones.
-* Generación de API Keys.
-* Validación de API Keys.
-* Rechazo de API Keys inválidas.
-* Validación de `appId`.
-* Registro de logs.
-* Logs `INFO`.
-* Logs `WARNING`.
-* Logs `ERROR`.
-* Logs `CRITICAL`.
-* Códigos HTTP `2xx`, `4xx` y `5xx`.
-* Registro de duración de las peticiones.
-* Consulta de logs.
-* Filtrado por rango de fechas.
-* Integración automática con HENNOVO.
-* Continuidad de funcionamiento de HENNOVO ante una caída de LogHub.
+```http
+GET /api/clientes
+```
+
+Si la respuesta es:
+
+```text
+HTTP 200
+Duración: 52 ms
+```
+
+puede enviar a LogHub:
+
+```json
+{
+  "message": "GET /api/clientes",
+  "logLevel": "INFO",
+  "appId": 1,
+  "statusCode": 200,
+  "durationMs": 52
+}
+```
+
+LogHub almacena el evento junto con información adicional de la petición, como:
+
+- Aplicación.
+- IP del cliente.
+- Método HTTP.
+- Endpoint.
+- Fecha y hora.
+- Código de estado.
+- Duración.
+- Nivel del log.
